@@ -135,14 +135,15 @@
           linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
         background-attachment: fixed;
       }
-      html[data-tilt="on"] .page { overflow-x: clip; perspective: 1500px; perspective-origin: 30% 480px; }   /* fixed: nothing about the tilt is ever recomputed while scrolling (a scroll handler moving this lagged the compositor and flickered, and made the angle change) */
-      /* the projection: hinged on its left edge, the right side swung out toward the viewer */
-      html[data-tilt="on"] .main {
-        position: relative;
-        transform: rotateY(-11deg) scale(var(--tilt-s, 0.92));   /* fixed angle; only the scale is fitted (by script) so no card runs off the screen */
-        transform-origin: 0% 480px;
-        padding-right: 64px;
+      /* every tilted block (each card and the stats row) carries its own perspective(), centred on itself, so it looks exactly the same wherever it sits on the page and
+         at any scroll position: there is no shared vanishing point and no script involved */
+      html[data-tilt="on"] { --tilt-t: perspective(1400px) rotateY(-9deg); --tilt-sb-t: perspective(1400px) rotateY(9deg) scale(0.97); }
+      html[data-tilt="on"] .page { overflow-x: clip; }
+      html[data-tilt="on"] .main { position: relative; padding-right: 40px; }
+      html[data-tilt="on"] .featured-card, html[data-tilt="on"] .project-card, html[data-tilt="on"] .stats {
+        transform: var(--tilt-t); transform-origin: 50% 50%; animation-name: fadeUpTilt;
       }
+      @keyframes fadeUpTilt { from { opacity: 0; transform: var(--tilt-t) translateY(14px); } to { opacity: 1; transform: var(--tilt-t); } }
       /* scanlines and a soft edge glow over the whole projection, never blocking a click */
       html[data-tilt="on"] .main::before {
         content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
@@ -152,7 +153,7 @@
       }
       /* the left side mirrors it: hinged on its right edge, the left side swung out toward the viewer */
       html[data-tilt="on"] .sidebar {
-        transform: rotateY(11deg) scale(var(--tilt-sb, 0.94)); transform-origin: 100% 50%;
+        transform: var(--tilt-sb-t); transform-origin: 50% 50%;
         /* no hard edges: the panel's fill, scanlines and divider all fade into the page at the top and bottom, so no slanted seam shows */
         background: linear-gradient(180deg, transparent 0, rgba(18,18,22,0.5) var(--tilt-fade), rgba(18,18,22,0.5) calc(100% - var(--tilt-fade)), transparent 100%);
         border-right-color: transparent; box-shadow: none;
@@ -201,7 +202,7 @@
         border-color: rgba(var(--accent-rgb), 0.85);
         background: rgba(var(--accent-rgb), 0.08);
         box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.35), 0 0 28px rgba(var(--accent-rgb), 0.25), inset 0 0 40px rgba(var(--accent-rgb), 0.08);
-        transform: translateZ(14px);
+        transform: var(--tilt-t) translateZ(14px);
       }
       html[data-tilt="on"] .featured-card:hover .fc-body { background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.18), rgba(var(--accent-rgb), 0.04)); }
       html[data-tilt="on"] .pv-badge,
@@ -1812,40 +1813,16 @@
     sync();
   })();
 
-  /* ── Tilt: a fixed angle (never changes with scroll). The only thing script adjusts is the scale, shrinking the tilted grid just enough
-        that its right edge (the side swung toward the viewer) always stays on screen, so no card is cut off. ── */
+  /* ── Tilt: purely CSS (each card and the sidebar carry their own fixed transform); this only wires the on/off button. ── */
   (function tiltUi() {
     const root = document.documentElement, btn = document.getElementById('tiltToggle');
-    const main = document.querySelector('.main'), MARGIN = 14, S_MAX = 0.92, S_MIN = 0.45;
     const sync = () => { const on = root.getAttribute('data-tilt') === 'on'; if (btn) { btn.setAttribute('aria-pressed', String(on)); btn.querySelector('.tt-l').textContent = 'Tilt: ' + (on ? 'on' : 'off'); } };
-    const side = document.querySelector('.sidebar');
-    const right = () => { let r = 0; for (const c of main.children) { if (!c.offsetParent && getComputedStyle(c).position !== 'fixed') continue; const b = c.getBoundingClientRect(); if (b.width) r = Math.max(r, b.right); } return r; };
-    const left = () => side.getBoundingClientRect().left;
-    // largest scale (up to max) at which over() is still false; the properties are set and measured synchronously, so nothing is ever painted mid-search
-    function shrink(prop, max, over) {
-      root.style.setProperty(prop, max); main.getBoundingClientRect();
-      if (!over()) return;
-      let lo = S_MIN, hi = max;
-      for (let k = 0; k < 9; k++) { const m = (lo + hi) / 2; root.style.setProperty(prop, m); main.getBoundingClientRect(); if (over()) hi = m; else lo = m; }
-      root.style.setProperty(prop, lo.toFixed(4));
-    }
-    function fit() {
-      if (!main || !side) return;
-      const tilted = root.getAttribute('data-tilt') === 'on' && getComputedStyle(main).transform !== 'none';
-      if (!tilted) { root.style.removeProperty('--tilt-s'); root.style.removeProperty('--tilt-sb'); return; }
-      const lim = document.documentElement.clientWidth - MARGIN;
-      shrink('--tilt-s', S_MAX, () => right() > lim);
-      shrink('--tilt-sb', 0.94, () => left() < 2);
-    }
     if (btn) btn.addEventListener('click', () => {
       const next = root.getAttribute('data-tilt') === 'on' ? 'off' : 'on';
       root.setAttribute('data-tilt', next); try { localStorage.setItem('portfolio-tilt-v2', next); } catch (e) {}
-      sync(); fit();
+      sync();
     });
-    sync(); fit();
-    addEventListener('resize', fit);
-    if (window.ResizeObserver && main) new ResizeObserver(fit).observe(main);
-    addEventListener('load', fit);
+    sync();
   })();
 </script>
 </body>
