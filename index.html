@@ -34,11 +34,11 @@
     try { forced = !!new URLSearchParams(location.search).get('season'); seasonOff = !forced && localStorage.getItem('portfolio-season') !== 'on'; } catch (e) { seasonOff = true; }   // off by default; the button turns it on
     if (s) document.documentElement.setAttribute('data-season-name', s);
     if (s && !seasonOff) document.documentElement.setAttribute('data-season', s);
-    /* Tilted UI (portfolio page only): on by default for laptops and desktops (a mouse and room to hover), off by default for phones and tablets.
-       A choice made with the button at the bottom right is remembered.  ?tilt=off|on overrides for a visit. */
+    /* Tilted UI (portfolio page only): off by default, because a 3D-rotated page resamples its text (soft, blurry letters) and re-renders
+       while scrolling (flicker at the bottom). The button at the bottom right turns it on and the choice is remembered (new key, so an
+       old saved "on" from when it was the default doesn't carry over).  ?tilt=off|on overrides for a visit. */
     var tilt = 'off';
-    try { if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) tilt = 'on'; } catch (e) {}
-    try { var ts = localStorage.getItem('portfolio-tilt'); if (ts === 'on' || ts === 'off') tilt = ts; } catch (e) {}
+    try { var ts = localStorage.getItem('portfolio-tilt-v2'); if (ts === 'on' || ts === 'off') tilt = ts; } catch (e) {}
     try { var tq = new URLSearchParams(location.search).get('tilt'); if (tq === 'off' || tq === 'on') tilt = tq; } catch (e) {}
     document.documentElement.setAttribute('data-tilt', tilt);
   })();
@@ -140,7 +140,7 @@
       html[data-tilt="on"] .main {
         position: relative;
         transform: rotateY(-11deg) scale(var(--tilt-s, 0.92));   /* fixed angle; only the scale is fitted (by script) so no card runs off the screen */
-        transform-origin: 0% 480px; will-change: transform;
+        transform-origin: 0% 480px;
         padding-right: 64px;
       }
       /* scanlines and a soft edge glow over the whole projection, never blocking a click */
@@ -221,7 +221,6 @@
       .tilt-toggle .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
       html[data-tilt="on"] .tilt-toggle .dot { background: var(--accent); box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.7); }
     }
-    @media (prefers-reduced-motion: reduce) { html[data-tilt="on"] .main { will-change: auto; } }
 
     html { scroll-behavior: smooth; }
 
@@ -1844,12 +1843,12 @@
     }
     if (btn) btn.addEventListener('click', () => {
       const next = root.getAttribute('data-tilt') === 'on' ? 'off' : 'on';
-      root.setAttribute('data-tilt', next); try { localStorage.setItem('portfolio-tilt', next); } catch (e) {}
-      sync(); fit();
+      root.setAttribute('data-tilt', next); try { localStorage.setItem('portfolio-tilt-v2', next); } catch (e) {}
+      pin(); sync(); fit();
     });
     // keep the vanishing point fixed relative to the screen (it is measured down the page), so the slant is the same at every scroll position
     const page = document.querySelector('.page');
-    function pin() { if (!page) return; root.style.setProperty('--tilt-py', Math.round(Math.min(window.innerHeight * 0.5, 480) - page.getBoundingClientRect().top) + 'px'); }
+    function pin() { if (!page || root.getAttribute('data-tilt') !== 'on') return; root.style.setProperty('--tilt-py', Math.round(Math.min(window.innerHeight * 0.5, 480) - page.getBoundingClientRect().top) + 'px'); }
     addEventListener('scroll', pin, { passive: true }); addEventListener('resize', pin);
     pin(); sync(); fit();
     addEventListener('resize', fit);
