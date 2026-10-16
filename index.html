@@ -135,15 +135,17 @@
           linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
         background-attachment: fixed;
       }
-      /* every tilted block (each card and the stats row) carries its own perspective(), centred on itself, so it looks exactly the same wherever it sits on the page and
-         at any scroll position: there is no shared vanishing point and no script involved */
-      html[data-tilt="on"] { --tilt-t: perspective(1400px) rotateY(-9deg); --tilt-sb-t: perspective(1400px) rotateY(9deg) scale(0.97); }
-      html[data-tilt="on"] .page { overflow-x: clip; }
-      html[data-tilt="on"] .main { position: relative; padding-right: 40px; }
-      html[data-tilt="on"] .featured-card, html[data-tilt="on"] .project-card, html[data-tilt="on"] .stats {
-        transform: var(--tilt-t); transform-origin: 50% 50%; animation-name: fadeUpTilt;
+      /* The whole page is one tilted plane. The body is a fixed, viewport-sized stage that holds the perspective (its vanishing point is
+         the middle of the screen and never moves) and the page scrolls natively inside it, so the angle looks the same at every scroll
+         position and nothing is recomputed while scrolling: no script, no per-frame work. */
+      html[data-tilt="on"], html[data-tilt="on"] body { height: 100%; overflow: hidden; }
+      html[data-tilt="on"] body { perspective: 1600px; perspective-origin: 50% 50%; }
+      html[data-tilt="on"] .page {
+        height: 100vh; min-height: 0; overflow-x: hidden; overflow-y: auto; outline: none;
+        transform: rotateY(-8deg) scale(0.94); transform-origin: 50% 50%;
+        scrollbar-width: thin; scrollbar-color: rgba(var(--accent-rgb), 0.45) transparent;
       }
-      @keyframes fadeUpTilt { from { opacity: 0; transform: var(--tilt-t) translateY(14px); } to { opacity: 1; transform: var(--tilt-t); } }
+      html[data-tilt="on"] .main { position: relative; padding-right: 40px; }
       /* scanlines and a soft edge glow over the whole projection, never blocking a click */
       html[data-tilt="on"] .main::before {
         content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
@@ -153,7 +155,6 @@
       }
       /* the left side mirrors it: hinged on its right edge, the left side swung out toward the viewer */
       html[data-tilt="on"] .sidebar {
-        transform: var(--tilt-sb-t); transform-origin: 50% 50%;
         /* no hard edges: the panel's fill, scanlines and divider all fade into the page at the top and bottom, so no slanted seam shows */
         background: linear-gradient(180deg, transparent 0, rgba(18,18,22,0.5) var(--tilt-fade), rgba(18,18,22,0.5) calc(100% - var(--tilt-fade)), transparent 100%);
         border-right-color: transparent; box-shadow: none;
@@ -202,7 +203,6 @@
         border-color: rgba(var(--accent-rgb), 0.85);
         background: rgba(var(--accent-rgb), 0.08);
         box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.35), 0 0 28px rgba(var(--accent-rgb), 0.25), inset 0 0 40px rgba(var(--accent-rgb), 0.08);
-        transform: var(--tilt-t) translateZ(14px);
       }
       html[data-tilt="on"] .featured-card:hover .fc-body { background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.18), rgba(var(--accent-rgb), 0.04)); }
       html[data-tilt="on"] .pv-badge,
@@ -866,7 +866,7 @@
   </style>
 </head>
 <body>
-<div class="page">
+<div class="page" tabindex="-1">
 
   <!-- MOBILE TOP BAR -->
   <div class="mobile-bar" id="mobileBar">
@@ -1818,11 +1818,15 @@
       if (on) root.removeAttribute('data-season'); else root.setAttribute('data-season', name);
       try { localStorage.setItem('portfolio-season', on ? 'off' : 'on'); } catch (e) {}
       sync();
+      if (next === 'on') focusPage();
     });
+    // the page scrolls inside its own box while tilted, so give it focus: arrow keys, space and page up/down then work straight away
+    function focusPage() { const pg = document.querySelector('.page'); if (pg) pg.focus({ preventScroll: true }); }
     sync();
+    if (root.getAttribute('data-tilt') === 'on') focusPage();
   })();
 
-  /* ── Tilt: purely CSS (each card and the sidebar carry their own fixed transform); this only wires the on/off button. ── */
+  /* ── Tilt: purely CSS (the whole page is one rotated plane inside a fixed perspective stage); this only wires the on/off button. ── */
   (function tiltUi() {
     const root = document.documentElement, btn = document.getElementById('tiltToggle');
     const sync = () => { const on = root.getAttribute('data-tilt') === 'on'; if (btn) { btn.setAttribute('aria-pressed', String(on)); btn.querySelector('.tt-l').textContent = 'Tilt: ' + (on ? 'on' : 'off'); } };
@@ -1830,8 +1834,12 @@
       const next = root.getAttribute('data-tilt') === 'on' ? 'off' : 'on';
       root.setAttribute('data-tilt', next); try { localStorage.setItem('portfolio-tilt-v2', next); } catch (e) {}
       sync();
+      if (next === 'on') focusPage();
     });
+    // the page scrolls inside its own box while tilted, so give it focus: arrow keys, space and page up/down then work straight away
+    function focusPage() { const pg = document.querySelector('.page'); if (pg) pg.focus({ preventScroll: true }); }
     sync();
+    if (root.getAttribute('data-tilt') === 'on') focusPage();
   })();
 </script>
 </body>
