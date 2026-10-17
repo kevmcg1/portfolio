@@ -135,22 +135,20 @@
           linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
         background-attachment: fixed;
       }
-      /* The whole page is one tilted plane. The body is a fixed, viewport-sized stage that holds the perspective (its vanishing point is
-         the middle of the screen and never moves) and the page scrolls natively inside it, so the angle looks the same at every scroll
-         position and nothing is recomputed while scrolling: no script, no per-frame work. */
+      /* Everything except the left sidebar is one tilted plane. .page is a fixed, viewport-sized stage that holds the perspective (its
+         vanishing point never moves) and .main scrolls natively inside it, so the angle looks the same at every scroll position and
+         nothing is recomputed while scrolling: no script, no per-frame work. The sidebar stays flat. */
       html[data-tilt="on"], html[data-tilt="on"] body { height: 100%; overflow: hidden; }
-      html[data-tilt="on"] body { perspective: 1600px; perspective-origin: 50% 50%; }
-      html[data-tilt="on"] .page {
-        height: 100vh; min-height: 0; overflow-x: hidden; overflow-y: auto; outline: none;
-        transform: rotateY(-8deg) scale(0.94); transform-origin: 50% 50%;
+      html[data-tilt="on"] .page { height: 100vh; min-height: 0; overflow: hidden; perspective: 1600px; perspective-origin: 60% 50%; }
+      html[data-tilt="on"] .main {
+        position: relative; min-width: 0; height: 100vh; padding-right: 40px; overflow-x: hidden; overflow-y: auto; outline: none;
+        transform: var(--tilt-main, rotateY(-6deg) scale(0.96)); transform-origin: 50% 50%;
         scrollbar-width: thin; scrollbar-color: rgba(var(--accent-rgb), 0.45) transparent;
       }
-      html[data-tilt="on"] .main { position: relative; padding-right: 40px; }
       /* scanlines and a soft edge glow over the whole projection, never blocking a click */
       html[data-tilt="on"] .main::before {
         content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
         background: repeating-linear-gradient(180deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px);
-        mix-blend-mode: screen;
         -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 var(--tilt-fade), #000 calc(100% - var(--tilt-fade)), transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 var(--tilt-fade), #000 calc(100% - var(--tilt-fade)), transparent 100%);
       }
       /* the left side mirrors it: hinged on its right edge, the left side swung out toward the viewer */
@@ -167,7 +165,6 @@
       html[data-tilt="on"] .sidebar::before {
         content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
         background: repeating-linear-gradient(180deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px);
-        mix-blend-mode: screen;
         -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 var(--tilt-fade), #000 calc(100% - var(--tilt-fade)), transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 var(--tilt-fade), #000 calc(100% - var(--tilt-fade)), transparent 100%);
       }
       html[data-tilt="on"] .chip {
@@ -866,7 +863,7 @@
   </style>
 </head>
 <body>
-<div class="page" tabindex="-1">
+<div class="page">
 
   <!-- MOBILE TOP BAR -->
   <div class="mobile-bar" id="mobileBar">
@@ -962,7 +959,7 @@
   </aside>
 
   <!-- MAIN -->
-  <main class="main">
+  <main class="main" tabindex="-1">
     <div class="season-banner" id="seasonBanner" role="status" aria-live="polite"></div>
     <div class="main-header">
       <h1>All<br><span>Projects</span></h1>
@@ -1821,12 +1818,12 @@
       if (next === 'on') focusPage();
     });
     // the page scrolls inside its own box while tilted, so give it focus: arrow keys, space and page up/down then work straight away
-    function focusPage() { const pg = document.querySelector('.page'); if (pg) pg.focus({ preventScroll: true }); }
+    function focusPage() { const pg = document.querySelector('.main'); if (pg) pg.focus({ preventScroll: true }); }
     sync();
     if (root.getAttribute('data-tilt') === 'on') focusPage();
   })();
 
-  /* ── Tilt: purely CSS (the whole page is one rotated plane inside a fixed perspective stage); this only wires the on/off button. ── */
+  /* ── Tilt: purely CSS (everything but the sidebar is one rotated plane inside a fixed perspective stage); this only wires the on/off button. ── */
   (function tiltUi() {
     const root = document.documentElement, btn = document.getElementById('tiltToggle');
     const sync = () => { const on = root.getAttribute('data-tilt') === 'on'; if (btn) { btn.setAttribute('aria-pressed', String(on)); btn.querySelector('.tt-l').textContent = 'Tilt: ' + (on ? 'on' : 'off'); } };
@@ -1837,7 +1834,7 @@
       if (next === 'on') focusPage();
     });
     // the page scrolls inside its own box while tilted, so give it focus: arrow keys, space and page up/down then work straight away
-    function focusPage() { const pg = document.querySelector('.page'); if (pg) pg.focus({ preventScroll: true }); }
+    function focusPage() { const pg = document.querySelector('.main'); if (pg) pg.focus({ preventScroll: true }); }
     sync();
     if (root.getAttribute('data-tilt') === 'on') focusPage();
   })();
