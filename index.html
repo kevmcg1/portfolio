@@ -1034,6 +1034,8 @@
   // • Featured previews: set previewScene to 'snowboard' | 'insert' | 'car' | 'generic' (default),
   //   or set previewVideo: '/previews/your-clip.mp4' (and optionally previewPoster) to use a recorded clip instead.
   // • Set status: 'retired' to tag a project as retired and dim its card.
+  // GitHub repo for the 3D modeler (repo is still named 3d-modeling; change this one line if it is renamed)
+  const MODELER_REPO_URL = 'https://github.com/kevmcg1/3d-modeling';
   const DATA = [
     {
       id: 'PROJ-001',
@@ -1173,6 +1175,18 @@
       previewVideo: '/previews/3d-to-step-preview.mp4',
       desc: 'Convert STL, OBJ, PLY, 3MF and GLB meshes to STEP in your browser, with automatic repair, undo/redo and a report of what was fixed and where.',
       tags: ['Web App', 'Tool'],
+      updated: 'Oct 2026',
+      laptopCompat: true,
+      mobileCompat: false,
+    },
+    {
+      id: 'PROJ-012',
+      name: '3d-modeler',
+      cat: 'web_apps',
+      status: 'wip',
+      url: MODELER_REPO_URL,
+      desc: 'Early-access browser 3D CAD and CAM tool. Public repo on GitHub.',
+      tags: ['Web App', 'Tool', 'CAD', 'CAM'],
       updated: 'Oct 2026',
       laptopCompat: true,
       mobileCompat: false,
