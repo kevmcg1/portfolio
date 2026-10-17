@@ -134,14 +134,19 @@
           linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
         background-attachment: fixed;
       }
-      /* Only the panels are tilted: each card's (and the stats row's) background, border and glow live on a pseudo-element behind the
-         content and carry their own fixed perspective + rotation, centred on themselves. All text stays flat, so it is pixel-crisp, and
-         because every panel is tilted about its own centre the angle looks identical at every scroll position, with no script. */
-      html[data-tilt="on"] { --tilt-panel: perspective(1400px) rotateY(-6deg) scale(0.97); }
+      /* Everything except the left sidebar is one tilted plane. .page is a fixed, viewport-sized stage that holds the perspective (its
+         vanishing point never moves) and .main scrolls natively inside it, so the angle looks the same at every scroll position and
+         nothing is recomputed while scrolling: no script, no per-frame work. The sidebar stays flat. */
+      html[data-tilt="on"], html[data-tilt="on"] body { height: 100%; overflow: hidden; }
+      html[data-tilt="on"] .page { height: 100vh; min-height: 0; overflow: hidden; perspective: 1600px; perspective-origin: 60% 50%; }
+      html[data-tilt="on"] .main {
+        position: relative; min-width: 0; height: 100vh; padding-right: 40px; overflow-x: hidden; overflow-y: auto; outline: none;
+        transform: var(--tilt-main, rotateY(-6deg) scale(0.96)); transform-origin: 50% 50%;
+        scrollbar-width: thin; scrollbar-color: rgba(var(--accent-rgb), 0.45) transparent;
+      }
       /* scanlines and a soft edge glow over the whole projection, never blocking a click */
-      html[data-tilt="on"] .main { position: relative; isolation: isolate; }
       html[data-tilt="on"] .main::before {
-        content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+        content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
         background: repeating-linear-gradient(180deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px);
         -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 var(--tilt-fade), #000 calc(100% - var(--tilt-fade)), transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 var(--tilt-fade), #000 calc(100% - var(--tilt-fade)), transparent 100%);
       }
@@ -156,9 +161,8 @@
         background: linear-gradient(180deg, transparent 0, rgba(var(--accent-rgb), 0.4) var(--tilt-fade), rgba(var(--accent-rgb), 0.4) calc(100% - var(--tilt-fade)), transparent 100%);
       }
 
-      html[data-tilt="on"] .sidebar { isolation: isolate; }
       html[data-tilt="on"] .sidebar::before {
-        content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+        content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
         background: repeating-linear-gradient(180deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px);
         -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 var(--tilt-fade), #000 calc(100% - var(--tilt-fade)), transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 var(--tilt-fade), #000 calc(100% - var(--tilt-fade)), transparent 100%);
       }
@@ -175,38 +179,25 @@
       html[data-tilt="on"] .sidebar-logo .title-underline { background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%); opacity: 0.7; }
 
       /* panels: dark, see-through, square-cornered */
-      html[data-tilt="on"] .featured-card, html[data-tilt="on"] .project-card, html[data-tilt="on"] .stats {
-        position: relative; isolation: isolate; overflow: visible; background: none; border-color: transparent; box-shadow: none;
-        backdrop-filter: none; -webkit-backdrop-filter: none;
-      }
-      html[data-tilt="on"] .featured-card::after, html[data-tilt="on"] .project-card::before, html[data-tilt="on"] .stats::before {
-        content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      html[data-tilt="on"] .featured-card,
+      html[data-tilt="on"] .project-card {
         background: rgba(18,18,22,0.55);
         backdrop-filter: blur(6px) saturate(1.1); -webkit-backdrop-filter: blur(6px) saturate(1.1);
         border: 1px solid rgba(255,255,255,0.09);
         border-radius: 3px;
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 18px 40px rgba(0,0,0,0.35);
-        transform: var(--tilt-panel); transform-origin: 50% 50%;
       }
-      /* the wide rows need a much smaller angle than the narrow cards for the panel to stay under its text */
-      html[data-tilt="on"] .project-card::before, html[data-tilt="on"] .stats::before { transform: perspective(1400px) rotateY(-2deg) scale(0.99); }
-      /* the divider is inset so its ends stay inside the tilted panel (a full-width flat line would poke out of the slanted edges) */
-      html[data-tilt="on"] .fc-preview { background: transparent; border-bottom-color: transparent; }
-      html[data-tilt="on"] .fc-preview::after { content: ''; position: absolute; left: 16px; right: 16px; bottom: 0; height: 1px; background: rgba(255,255,255,0.07); pointer-events: none; }
-      html[data-tilt="on"] .page { overflow-x: clip; }
+      html[data-tilt="on"] .fc-preview { background: rgba(8,8,12,0.6); border-bottom-color: rgba(255,255,255,0.07); }
       /* orange corner tick on every panel, like the item slots */
-      html[data-tilt="on"] .featured-card::before { display: none; }
-      html[data-tilt="on"] .featured-card::after {
-        background: linear-gradient(var(--accent), var(--accent)) left bottom / 4px 22px no-repeat, rgba(18,18,22,0.55);
+      html[data-tilt="on"] .featured-card::before {
+        content: ''; position: absolute; left: 0; bottom: 0; z-index: 4; width: 4px; height: 22px;
+        background: var(--accent); opacity: 0.85; pointer-events: none;
       }
       /* the selected slot: orange glow and edge */
-      html[data-tilt="on"] .featured-card:hover::after {
-        background: linear-gradient(var(--accent), var(--accent)) left bottom / 4px 22px no-repeat, rgba(var(--accent-rgb), 0.08);
-      }
-      html[data-tilt="on"] .project-card[href]:hover::before { background: rgba(var(--accent-rgb), 0.08); }
-      html[data-tilt="on"] .featured-card:hover::after,
-      html[data-tilt="on"] .project-card[href]:hover::before {
+      html[data-tilt="on"] .featured-card:hover,
+      html[data-tilt="on"] .project-card[href]:hover {
         border-color: rgba(var(--accent-rgb), 0.85);
+        background: rgba(var(--accent-rgb), 0.08);
         box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.35), 0 0 28px rgba(var(--accent-rgb), 0.25), inset 0 0 40px rgba(var(--accent-rgb), 0.08);
       }
       html[data-tilt="on"] .featured-card:hover .fc-body { background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.18), rgba(var(--accent-rgb), 0.04)); }
@@ -962,7 +953,7 @@
   </aside>
 
   <!-- MAIN -->
-  <main class="main">
+  <main class="main" tabindex="-1">
     <div class="season-banner" id="seasonBanner" role="status" aria-live="polite"></div>
     <div class="main-header">
       <h1>All<br><span>Projects</span></h1>
@@ -1817,9 +1808,9 @@
       sync();
     });
     sync();
-  })();
+})();
 
-  /* ── Tilt: purely CSS (only the panel backgrounds are rotated, the text stays flat); this only wires the on/off button. ── */
+  /* ── Tilt: purely CSS (everything but the sidebar is one rotated plane inside a fixed perspective stage); this only wires the on/off button. ── */
   (function tiltUi() {
     const root = document.documentElement, btn = document.getElementById('tiltToggle');
     const sync = () => { const on = root.getAttribute('data-tilt') === 'on'; if (btn) { btn.setAttribute('aria-pressed', String(on)); btn.querySelector('.tt-l').textContent = 'Tilt: ' + (on ? 'on' : 'off'); } };
@@ -1827,8 +1818,12 @@
       const next = root.getAttribute('data-tilt') === 'on' ? 'off' : 'on';
       root.setAttribute('data-tilt', next); try { localStorage.setItem('portfolio-tilt-v2', next); } catch (e) {}
       sync();
+      if (next === 'on') focusPage();
     });
+    // the page scrolls inside its own box while tilted, so give it focus: arrow keys, space and page up/down then work straight away
+    function focusPage() { const pg = document.querySelector('.main'); if (pg) pg.focus({ preventScroll: true }); }
     sync();
+    if (root.getAttribute('data-tilt') === 'on') focusPage();
   })();
 </script>
 </body>
