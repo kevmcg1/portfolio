@@ -108,21 +108,25 @@
       50%      { transform: scale(1.15); opacity: 0.95; }
     }
     @media (prefers-reduced-motion: reduce) { #seasonFx { display: none; } }
-    .season-toggle {
-      display: none; align-items: center; gap: 8px; position: fixed; right: 14px; bottom: 14px; z-index: 60;
-      padding: 7px 12px; border-radius: 6px; border: 1px solid var(--border); background: rgba(17,17,20,0.88);
+    /* the holiday-theme and tilt buttons live at the bottom of the left sidebar (and the holiday one also in the mobile filter drawer) */
+    .side-tools { margin-top: auto; padding: 18px 24px 0; display: flex; flex-direction: column; gap: 8px; }
+    .season-toggle, .tilt-toggle {
+      align-items: center; gap: 8px; width: 100%;
+      padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border); background: transparent;
       color: var(--muted); font: 500 0.6rem/1 'DM Sans', sans-serif; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer;
-      backdrop-filter: blur(6px);
+      transition: color 0.2s, border-color 0.2s;
     }
-    .season-toggle:hover { color: var(--text); border-color: var(--accent); }
+    .season-toggle { display: none; }
+    .tilt-toggle { display: inline-flex; }
+    .season-toggle:hover, .tilt-toggle:hover { color: var(--text); border-color: var(--accent); }
     html[data-season-name] .season-toggle { display: inline-flex; }
-    /* sit to the left of the tilt button when it is showing (wide screens) */
-    @media (min-width: 769px) { html[data-season-name] .season-toggle { right: 150px; } }
+    .tilt-toggle .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+    html[data-tilt="on"] .tilt-toggle .dot { background: var(--accent); box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.7); }
+    .drawer-body .season-toggle { margin-top: 8px; }
 
     /* ── EXPERIMENTAL: tilted HUD look (a nod to the Division's inventory screen). The project grid on the right floats
           like an AR projection: angled toward the viewer, dark see-through panels, orange highlights, faint scanlines.
           Off switch: the button at the bottom right (remembered), or ?tilt=off.  Only on screens wide enough for the sidebar. ── */
-    .tilt-toggle { display: none; }
     @media (min-width: 769px) {
       html[data-tilt="on"] { --tilt-fade: max(110px, 12vh); }   /* how far the panel edges fade into the page: grows with the screen so a large monitor shows no seam either */
       /* the Division's orange, unless a holiday theme is choosing the colors */
@@ -204,19 +208,12 @@
       html[data-tilt="on"] .pv-badge,
       html[data-tilt="on"] .open-btn,
       html[data-tilt="on"] .chip,
-      html[data-tilt="on"] .clear-btn { border-radius: 2px; }
+      html[data-tilt="on"] .clear-btn,
+      html[data-tilt="on"] .season-toggle,
+      html[data-tilt="on"] .tilt-toggle { border-radius: 2px; }
       html[data-tilt="on"] .featured-head::after,
       html[data-tilt="on"] .section-label::after { background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.6), rgba(255,255,255,0.06) 40%); }
 
-      .tilt-toggle {
-        display: inline-flex; align-items: center; gap: 8px; position: fixed; right: 14px; bottom: 14px; z-index: 60;
-        padding: 7px 12px; border-radius: 6px; border: 1px solid var(--border); background: rgba(17,17,20,0.88);
-        color: var(--muted); font: 500 0.6rem/1 'DM Sans', sans-serif; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer;
-        backdrop-filter: blur(6px);
-      }
-      .tilt-toggle:hover { color: var(--text); border-color: var(--accent); }
-      .tilt-toggle .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-      html[data-tilt="on"] .tilt-toggle .dot { background: var(--accent); box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.7); }
     }
 
     html { scroll-behavior: smooth; }
@@ -898,6 +895,7 @@
         </div>
       </div>
       <button class="drawer-clear" onclick="clearAll()">⟳ &nbsp;Clear All Filters</button>
+      <button type="button" class="season-toggle" aria-pressed="false" title="Turn the current holiday theme off or on."><span class="tt-l">Holiday theme: off</span></button>
     </div>
   </div>
 
@@ -950,6 +948,11 @@
     </div>
 
     <button class="clear-btn" onclick="clearAll()">⟳ &nbsp;Clear All Filters</button>
+
+    <div class="side-tools">
+      <button type="button" class="season-toggle" id="seasonToggle" aria-pressed="false" title="Turn the current holiday theme off or on."><span class="tt-l">Holiday theme: off</span></button>
+      <button type="button" class="tilt-toggle" id="tiltToggle" aria-pressed="false" title="Experimental: a tilted, HUD-style layout. Click to turn it off or on."><span class="dot"></span><span class="tt-l">Tilt: off</span></button>
+    </div>
   </aside>
 
   <!-- MAIN -->
@@ -999,8 +1002,6 @@
 </div>
 
 
-<button type="button" class="season-toggle" id="seasonToggle" aria-pressed="false" title="Turn the current holiday theme off or on."><span class="tt-l">Holiday theme: off</span></button>
-<button type="button" class="tilt-toggle" id="tiltToggle" aria-pressed="false" title="Experimental: a tilted, HUD-style layout. Click to turn it off or on."><span class="dot"></span><span class="tt-l">Tilt: off</span></button>
 <script>
   document.getElementById('ds').textContent =
     new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'2-digit'}).toUpperCase();
@@ -1798,17 +1799,17 @@
 
   /* ── Holiday theme switch ── */
   (function seasonSwitch() {
-    const root = document.documentElement, btn = document.getElementById('seasonToggle'), name = root.getAttribute('data-season-name');
-    if (!btn || !name) return;
-    const sync = () => { const on = root.hasAttribute('data-season'); btn.setAttribute('aria-pressed', String(on)); btn.querySelector('.tt-l').textContent = 'Holiday theme: ' + (on ? 'on' : 'off'); };
-    btn.addEventListener('click', () => {
+    const root = document.documentElement, btns = [...document.querySelectorAll('.season-toggle')], name = root.getAttribute('data-season-name');
+    if (!btns.length || !name) return;
+    const sync = () => { const on = root.hasAttribute('data-season'); btns.forEach(btn => { btn.setAttribute('aria-pressed', String(on)); btn.querySelector('.tt-l').textContent = 'Holiday theme: ' + (on ? 'on' : 'off'); }); };
+    btns.forEach(btn => btn.addEventListener('click', () => {
       const on = root.hasAttribute('data-season');
       if (on) root.removeAttribute('data-season'); else root.setAttribute('data-season', name);
       try { localStorage.setItem('portfolio-season', on ? 'off' : 'on'); } catch (e) {}
       sync();
-    });
+    }));
     sync();
-})();
+  })();
 
   /* ── Tilt: purely CSS (everything but the sidebar is one rotated plane inside a fixed perspective stage); this only wires the on/off button. ── */
   (function tiltUi() {
