@@ -38,9 +38,8 @@
     /* Tilted UI (portfolio page only): off by default, because a 3D-rotated page resamples its text (soft, blurry letters) and re-renders
        while scrolling (flicker at the bottom). The button at the bottom right turns it on and the choice is remembered (new key, so an
        old saved "on" from when it was the default doesn't carry over).  ?tilt=off|on overrides for a visit. */
+    /* DISABLED: tilt is switched off for everyone. Saved choices and ?tilt=on are ignored, and the button is hidden (the tilt code below is kept, just unreachable). */
     var tilt = 'off';
-    try { var ts = localStorage.getItem('portfolio-tilt-v2'); if (ts === 'on' || ts === 'off') tilt = ts; } catch (e) {}
-    try { var tq = new URLSearchParams(location.search).get('tilt'); if (tq === 'off' || tq === 'on') tilt = tq; } catch (e) {}
     document.documentElement.setAttribute('data-tilt', tilt);
   })();
   </script>
@@ -118,7 +117,7 @@
       transition: color 0.2s, border-color 0.2s;
     }
     .season-toggle { display: none; }
-    .tilt-toggle { display: inline-flex; }
+    .tilt-toggle { display: none !important; }   /* tilt is disabled: no button */
     .season-toggle:hover, .tilt-toggle:hover { color: var(--text); border-color: var(--accent); }
     html[data-season-name] .season-toggle { display: inline-flex; }
     .tilt-toggle .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
