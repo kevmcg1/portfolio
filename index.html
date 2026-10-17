@@ -1834,12 +1834,51 @@
     if (btn) btn.addEventListener('click', () => {
       const next = root.getAttribute('data-tilt') === 'on' ? 'off' : 'on';
       root.setAttribute('data-tilt', next); try { localStorage.setItem('portfolio-tilt-v2', next); } catch (e) {}
-      sync();
+      sync(); assistScroll(next === 'on');
       if (next === 'on') focusPage();
     });
     // the page scrolls inside its own box while tilted, so give it focus: arrow keys, space and page up/down then work straight away
     function focusPage() { const pg = document.querySelector('.main'); if (pg) pg.focus({ preventScroll: true }); }
+
+    // While tilted only .main scrolls and the page around it can't (overflow: hidden), so a wheel or swipe over the sidebar, the gap
+    // beside it, or the strips the rotated plane leaves at its edges did nothing and the page felt stuck, most often after reaching
+    // the bottom with the pointer drifted off the cards. Hand those to .main, unless something under the pointer can scroll itself.
+    const main = document.querySelector('.main');
+    const tilted = () => root.getAttribute('data-tilt') === 'on' && matchMedia('(min-width: 769px)').matches;
+    const strayed = (target, dy) => {
+      if (!main || !tilted() || main.contains(target)) return false;
+      for (let el = target; el && el !== document.body; el = el.parentElement) {
+        const oy = getComputedStyle(el).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1 &&
+            (dy < 0 ? el.scrollTop > 0 : el.scrollTop + el.clientHeight < el.scrollHeight - 1)) return false;
+      }
+      return true;
+    };
+    const onWheel = e => {
+      if (e.ctrlKey || !e.deltaY || !strayed(e.target, e.deltaY)) return;   // ctrl+wheel is the browser's zoom
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? main.clientHeight : 1;
+      main.scrollBy(0, e.deltaY * unit);
+      e.preventDefault();
+    };
+    let touchY = null;
+    const onTouchStart = e => { touchY = e.touches.length === 1 ? e.touches[0].clientY : null; };
+    const onTouchMove = e => {
+      if (touchY === null || e.touches.length !== 1) return;
+      const y = e.touches[0].clientY, dy = touchY - y;
+      touchY = y;
+      if (!strayed(e.target, dy)) return;
+      main.scrollBy(0, dy);
+      if (e.cancelable) e.preventDefault();
+    };
+    // listening (non-passively) only while tilted, so the normal page keeps its fully off-thread scrolling
+    function assistScroll(on) {
+      const f = on ? 'addEventListener' : 'removeEventListener';
+      document[f]('wheel', onWheel, { passive: false });
+      document[f]('touchstart', onTouchStart, { passive: true });
+      document[f]('touchmove', onTouchMove, { passive: false });
+    }
     sync();
+    assistScroll(root.getAttribute('data-tilt') === 'on');
     if (root.getAttribute('data-tilt') === 'on') focusPage();
   })();
 </script>
