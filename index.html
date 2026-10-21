@@ -1184,7 +1184,7 @@
       name: '3d-modeler',
       cat: 'web_apps',
       status: 'wip',
-      url: '/3d-modeling/',
+      // no url on purpose: while it is not ready the card shows a grayed-out, unclickable COMING SOON instead of Open
       previewVideo: '/previews/3d-modeler-preview.mp4',
       desc: 'Early-access browser 3D CAD and CAM tool.',
       tags: ['Web App', 'Tool', 'CAD', 'CAM'],
@@ -1682,7 +1682,7 @@
       const retiredTag = isRetired ? `<span class="retired-tag">Retired</span>` : '';
       const openBtn = p.url
         ? `<a class="open-btn" href="${p.url}" aria-label="Open ${p.name}">Open <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>`
-        : `<span class="open-btn disabled">Coming soon</span>`;
+        : `<span class="open-btn disabled" role="button" aria-disabled="true" tabindex="-1">Coming soon</span>`;
 
       card.innerHTML = `
         <div class="fc-preview">
