@@ -646,6 +646,11 @@
       color: var(--muted);
     }
 
+    .dev-pill {
+      margin-left: 4px; padding: 1px 7px; border: 1px solid rgba(91,147,234,0.55); border-radius: 999px;
+      color: #5b93ea; font-size: 0.5rem; font-weight: 700; letter-spacing: 0.14em; white-space: nowrap;
+    }
+
     /* ── COMPATIBILITY INDICATORS ── */
     .compat-row {
       display: flex;
@@ -1041,7 +1046,7 @@
       id: 'PROJ-001',
       name: 'Insert Master',
       cat: 'web_apps',
-      status: 'complete',
+      status: 'wip',
       url: '/insert-master/',
       desc: 'Insert Decoder & Builder — a tool for working with machining inserts.',
       tags: ['Web App', 'Tool'],
@@ -1157,7 +1162,7 @@
       id: 'PROJ-010',
       name: 'Triangle Thing',
       cat: 'web_apps',
-      status: 'complete',
+      status: 'wip',
       url: '/triangle/',
       previewVideo: '/previews/triangle-preview.mp4',
       desc: 'Drag, type or lock any side or angle and watch every measurement, formula and trig value update live.',
@@ -1182,6 +1187,7 @@
     {
       id: 'PROJ-012',
       name: '3d-modeler',
+      devTag: true,   // shows an extra In Development tag (this project only)
       cat: 'web_apps',
       status: 'wip',
       // no url on purpose: while it is not ready the card shows a grayed-out, unclickable COMING SOON instead of Open
@@ -1707,7 +1713,7 @@
             <div class="fc-meta">
               <div class="status-row">
                 <div class="status-dot" style="--status-color:${statusColor}"></div>
-                ${STATUS_LABEL[p.status]||p.status}
+                ${STATUS_LABEL[p.status]||p.status}${p.devTag ? '<span class="dev-pill">In Development</span>' : ''}
               </div>
               ${compatHTML(p)}
             </div>
@@ -1762,7 +1768,7 @@
             <span class="cat-badge">${CAT_LABEL[p.cat] || p.cat}</span>
             <div class="status-row">
               <div class="status-dot" style="--status-color:${statusColor}"></div>
-              ${STATUS_LABEL[p.status]||p.status}
+              ${STATUS_LABEL[p.status]||p.status}${p.devTag ? '<span class="dev-pill">In Development</span>' : ''}
             </div>
             ${compatMarkup}
           </div>
