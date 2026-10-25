@@ -889,8 +889,8 @@
       <div class="drawer-section">
         <div class="drawer-section-title">Status</div>
         <div class="drawer-chips">
-          <button class="drawer-chip" data-g="status" data-v="complete" style="--chip-color:#3ddc6a" onclick="toggleDrawer(this)">Complete</button>
-          <button class="drawer-chip" data-g="status" data-v="wip"      style="--chip-color:#ff9f1c" onclick="toggleDrawer(this)">In Progress</button>
+          <button class="drawer-chip" data-g="status" data-v="complete" style="--chip-color:#3ddc6a" onclick="toggleDrawer(this)">Stable Release</button>
+          <button class="drawer-chip" data-g="status" data-v="wip"      style="--chip-color:#ff9f1c" onclick="toggleDrawer(this)">Alpha Testing</button>
           <button class="drawer-chip" data-g="status" data-v="retired"  style="--chip-color:#5a5a66" onclick="toggleDrawer(this)">Retired</button>
         </div>
       </div>
@@ -933,11 +933,11 @@
       <div class="filter-title">Status</div>
       <div class="chip-list">
         <button class="chip" data-g="status" data-v="complete" style="--chip-color:#3ddc6a" onclick="toggle(this)">
-          <span class="chip-dot"></span><span class="chip-label">Complete</span>
+          <span class="chip-dot"></span><span class="chip-label">Stable Release</span>
           <span class="chip-check">✓</span>
         </button>
         <button class="chip" data-g="status" data-v="wip" style="--chip-color:#ff9f1c" onclick="toggle(this)">
-          <span class="chip-dot"></span><span class="chip-label">In Progress</span>
+          <span class="chip-dot"></span><span class="chip-label">Alpha Testing</span>
           <span class="chip-check">✓</span>
         </button>
         <button class="chip" data-g="status" data-v="retired" style="--chip-color:#5a5a66" onclick="toggle(this)">
@@ -1024,8 +1024,8 @@
     retired:  '#5a5a66',
   };
   const STATUS_LABEL = {
-    complete: 'Complete',
-    wip:      'In Progress',
+    complete: 'Stable Release',
+    wip:      'Alpha Testing',
     retired:  'Retired',
   };
 
