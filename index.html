@@ -646,11 +646,6 @@
       color: var(--muted);
     }
 
-    .dev-pill {
-      margin-left: 4px; padding: 1px 7px; border: 1px solid rgba(91,147,234,0.55); border-radius: 999px;
-      color: #5b93ea; font-size: 0.5rem; font-weight: 700; letter-spacing: 0.14em; white-space: nowrap;
-    }
-
     /* ── COMPATIBILITY INDICATORS ── */
     .compat-row {
       display: flex;
@@ -896,6 +891,7 @@
         <div class="drawer-chips">
           <button class="drawer-chip" data-g="status" data-v="complete" style="--chip-color:#3ddc6a" onclick="toggleDrawer(this)">Stable Release</button>
           <button class="drawer-chip" data-g="status" data-v="wip"      style="--chip-color:#ff9f1c" onclick="toggleDrawer(this)">Alpha Testing</button>
+          <button class="drawer-chip" data-g="status" data-v="dev"      style="--chip-color:#5b93ea" onclick="toggleDrawer(this)">In Development</button>
           <button class="drawer-chip" data-g="status" data-v="retired"  style="--chip-color:#5a5a66" onclick="toggleDrawer(this)">Retired</button>
         </div>
       </div>
@@ -943,6 +939,10 @@
         </button>
         <button class="chip" data-g="status" data-v="wip" style="--chip-color:#ff9f1c" onclick="toggle(this)">
           <span class="chip-dot"></span><span class="chip-label">Alpha Testing</span>
+          <span class="chip-check">✓</span>
+        </button>
+        <button class="chip" data-g="status" data-v="dev" style="--chip-color:#5b93ea" onclick="toggle(this)">
+          <span class="chip-dot"></span><span class="chip-label">In Development</span>
           <span class="chip-check">✓</span>
         </button>
         <button class="chip" data-g="status" data-v="retired" style="--chip-color:#5a5a66" onclick="toggle(this)">
@@ -1027,11 +1027,13 @@
     complete: cssVar('--status-complete') || '#3ddc6a',
     wip:      '#ff9f1c',
     retired:  '#5a5a66',
+    dev:      '#5b93ea',
   };
   const STATUS_LABEL = {
     complete: 'Stable Release',
     wip:      'Alpha Testing',
     retired:  'Retired',
+    dev:      'In Development',
   };
 
   // ── PROJECTS ──
@@ -1187,9 +1189,8 @@
     {
       id: 'PROJ-012',
       name: '3d-modeler',
-      devTag: true,   // shows an extra In Development tag (this project only)
       cat: 'web_apps',
-      status: 'wip',
+      status: 'dev',
       // no url on purpose: while it is not ready the card shows a grayed-out, unclickable COMING SOON instead of Open
       previewVideo: '/previews/3d-modeler-preview.mp4',
       desc: 'Early-access browser 3D CAD and CAM tool.',
@@ -1713,7 +1714,7 @@
             <div class="fc-meta">
               <div class="status-row">
                 <div class="status-dot" style="--status-color:${statusColor}"></div>
-                ${STATUS_LABEL[p.status]||p.status}${p.devTag ? '<span class="dev-pill">In Development</span>' : ''}
+                ${STATUS_LABEL[p.status]||p.status}
               </div>
               ${compatHTML(p)}
             </div>
@@ -1768,7 +1769,7 @@
             <span class="cat-badge">${CAT_LABEL[p.cat] || p.cat}</span>
             <div class="status-row">
               <div class="status-dot" style="--status-color:${statusColor}"></div>
-              ${STATUS_LABEL[p.status]||p.status}${p.devTag ? '<span class="dev-pill">In Development</span>' : ''}
+              ${STATUS_LABEL[p.status]||p.status}
             </div>
             ${compatMarkup}
           </div>
